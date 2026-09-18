@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+
+[[mods]]
+modId="oneslib_test"
+version="${mod_version}"
+displayName="Ones Lib Testmod"
+authors="${mod_authors}"
+description='''GameTests and fixtures for Ones Lib. Not for production.'''
+
+[[dependencies.oneslib_test]]
+modId="forge"
+mandatory=true
+versionRange="${forge_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.oneslib_test]]
+modId="minecraft"
+mandatory=true
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.oneslib_test]]
+modId="oneslib"
+mandatory=true
+versionRange="[1.0.0,)"
+ordering="AFTER"
+side="BOTH"

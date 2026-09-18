@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.binaris.oneslib.test.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "mixins.oneslib_test.refmap.json",
+  "mixins": [],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

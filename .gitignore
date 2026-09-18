@@ -1,0 +1,17 @@
+.gradle/
+build/
+bin/
+out/
+run/
+run-data/
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+logs/
+
+# Hidden before publishing
+/README.md
+/PLAN.md
+testmod/src/main/resources/assets/
