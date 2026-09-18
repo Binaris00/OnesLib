@@ -12,6 +12,5 @@ run-data/
 logs/
 
 # Hidden before publishing
-/README.md
 /PLAN.md
 testmod/src/main/resources/assets/
