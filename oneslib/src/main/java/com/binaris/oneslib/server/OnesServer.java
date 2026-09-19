@@ -5,6 +5,7 @@ import com.binaris.oneslib.OnesLib;
 import com.binaris.oneslib.api.One;
 import com.binaris.oneslib.server.ability.AbilityEngine;
 import com.binaris.oneslib.server.morph.ServerOneManager;
+import com.binaris.oneslib.server.nick.NickCommand;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -44,5 +45,6 @@ public final class OnesServer {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         OnesCommand.register(event.getDispatcher());
+        event.getDispatcher().register(NickCommand.register());
     }
 }
