@@ -1,6 +1,7 @@
 package com.binaris.oneslib.test.ability;
 
 import com.binaris.oneslib.api.AbilityContext;
+import com.binaris.oneslib.api.KeybindUi;
 import com.binaris.oneslib.api.impl.ThrowAbility;
 
 import net.minecraft.core.particles.ParticleOptions;
@@ -17,7 +18,8 @@ public final class DragonFireball extends ThrowAbility {
 
     public DragonFireball() {
         super("dragon_fireball", 100, new ItemStack(Items.FIRE_CHARGE),
-                settings -> settings.name("Dragon Fireball").cooldown(40).keybind(GLFW.GLFW_KEY_F));
+                settings -> settings.name("Dragon Fireball").cooldown(40).keybind(GLFW.GLFW_KEY_F)
+                        .keybindUi(KeybindUi.BOXES));
     }
 
     @Override

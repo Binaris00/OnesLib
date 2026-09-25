@@ -114,6 +114,19 @@ public final class ServerOneManager {
         }
     }
 
+    public void respawn(ServerPlayer player) {
+        ActiveOne activeOne = this.active.get(player.getUUID());
+        if (activeOne == null) {
+            return;
+        }
+        One one = activeOne.one();
+        AbilityEngine.INSTANCE.deactivateAll(player, EndReason.MORPH_LOST);
+        this.applyAttributes(player, one);
+        this.applyEffects(player, one);
+        this.applyFlight(player, one);
+        AbilityEngine.INSTANCE.activatePassives(player, one);
+    }
+
     public void tick(ServerPlayer player) {
         LivingEntity current = PlayerShape.getCurrentShape(player);
         ActiveOne activeOne = this.active.get(player.getUUID());

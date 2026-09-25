@@ -1,6 +1,7 @@
 package com.binaris.oneslib.test.gametest;
 
 import com.binaris.oneslib.api.OnesApi;
+import com.binaris.oneslib.server.morph.ServerOneManager;
 import com.binaris.oneslib.test.TestMod;
 import com.binaris.oneslib.test.util.TestPlayers;
 
@@ -55,6 +56,28 @@ public final class MorphGameTest {
         OnesApi.demorph(player);
 
         helper.assertTrue(!player.hasEffect(MobEffects.DAMAGE_BOOST), "passive effects should be removed");
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void respawn_restoresPassiveEffects(GameTestHelper helper) {
+        ServerPlayer player = TestPlayers.spawn(helper);
+        BlockPos pos = helper.absolutePos(new BlockPos(2, 2, 2));
+        player.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
+
+        OnesApi.morph(player, "tails");
+        helper.assertTrue(player.hasEffect(MobEffects.DAMAGE_BOOST), "passive should apply damage boost");
+
+        // Simulate a respawned entity: the fresh player keeps the morph but loses its effects.
+        player.removeEffect(MobEffects.DAMAGE_BOOST);
+        player.removeEffect(MobEffects.MOVEMENT_SPEED);
+
+        ServerOneManager.INSTANCE.respawn(player);
+
+        helper.assertTrue(OnesApi.isMorphedAs(player, "tails"), "morph should persist on respawn");
+        helper.assertTrue(OnesApi.isActive(player, "tails_passive"), "passive should be re-activated on respawn");
+        helper.assertTrue(player.hasEffect(MobEffects.DAMAGE_BOOST), "passive effects should be restored on respawn");
+        helper.assertTrue(player.hasEffect(MobEffects.MOVEMENT_SPEED), "passive effects should be restored on respawn");
         helper.succeed();
     }
 }

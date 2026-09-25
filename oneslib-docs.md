@@ -126,7 +126,10 @@ public final class MyMod {
    applies attributes/effects/flight and activates passives.
 3. **Rendering** — Walkers renders the shape; the library registers a GeckoLib renderer using the One's assets.
 4. **Demorph** — `OnesApi.demorph(player)` clears the shape, cancels abilities, restores attributes/effects/flight.
-5. **External morphs** — if the player morphs through Remorphed/Walkers UI, the library detects the shape change
+5. **Respawn** — when a morphed player respawns (death or End return), the library re-applies the morph state
+   (attributes, effects, flight) and re-activates passive abilities on the fresh entity, so passive effects do
+   not disappear after death.
+6. **External morphs** — if the player morphs through Remorphed/Walkers UI, the library detects the shape change
    on tick and binds abilities/attributes automatically.
 
 ### Registration
@@ -150,6 +153,7 @@ Ones.register("evil_hulk", one -> one
         .effect(MobEffects.DAMAGE_RESISTANCE, -1, 0))
     .visual(visual -> visual
         .modelScale(1.35F)
+        .guiScale(0.5F)                       // scale in inventory/morph GUIs (1.0 = auto from hitbox)
         .firstPersonHand(false)
         .showNameTag(true)
         .cameraOffset(0.0D, 0.3D, 0.0D))
@@ -201,6 +205,16 @@ assets/<namespace>/animations/entity/<asset>.animation.json
 ```
 
 Animation names used by the library base controller: `idle`, `walk`. Abilities reference the rest by name.
+
+Optional base-controller animations (per One, via `.animations(...)`):
+
+```java
+.animations(animations -> animations
+    .crouch("Crouch")            // played (looped) while the owner player sneaks
+    .attack("Attack", 18))       // played (looped) for N ticks after the owner attacks
+```
+
+If a One does not declare them, the base controller keeps using `idle`/`walk` only.
 
 ### State channel (item-hack)
 
@@ -359,6 +373,10 @@ context.fly(true);
 - The library registers one `KeyMapping` per ability (category `key.categories.oneslib.abilities`).
 - The same key is allowed on abilities of **different** Ones; resolution uses the player's current One.
 - Two abilities of the **same** One sharing a key fails at registration.
+- Per ability you can opt into a client HUD with `.keybindUi(KeybindUi.BOXES)` (default `NONE`): while morphed,
+  the bound key is drawn inside a square with the ability name below it, four per row, above the hotbar.
+  Only abilities with a real keybind (`keybind != GLFW_KEY_UNKNOWN`) are shown. The HUD reads the live binding
+  (rebinds apply instantly).
 
 ### Ability items
 
@@ -405,7 +423,7 @@ OnesApi.clearCooldown(player, "evil_hulk_golpe");
 
 ```bash
 ./gradlew :oneslib:test                 # unit tests (JUnit 5) + GeckoLib asset parsing
-./gradlew :testmod:runGameTestServer    # GameTests (16)
+./gradlew :testmod:runGameTestServer    # GameTests (17)
 ./gradlew :testmod:runClient -Pclienttest="WorldName"   # client self-test in that world
 ```
 

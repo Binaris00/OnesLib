@@ -22,6 +22,7 @@ public final class AbilitySettings {
     private final SoundEvent sound;
     private final boolean keybindOnly;
     private final boolean cooldownMessage;
+    private final KeybindUi keybindUi;
     @Nullable
     private final Predicate<ServerPlayer> activation;
 
@@ -34,6 +35,7 @@ public final class AbilitySettings {
         this.sound = builder.sound;
         this.keybindOnly = builder.keybindOnly;
         this.cooldownMessage = builder.cooldownMessage;
+        this.keybindUi = builder.keybindUi;
         this.activation = builder.activation;
     }
 
@@ -77,6 +79,10 @@ public final class AbilitySettings {
         return this.cooldownMessage;
     }
 
+    public KeybindUi keybindUi() {
+        return this.keybindUi;
+    }
+
     public boolean isAllowed(ServerPlayer player) {
         return this.activation == null || this.activation.test(player);
     }
@@ -92,6 +98,7 @@ public final class AbilitySettings {
         private SoundEvent sound;
         private boolean keybindOnly;
         private boolean cooldownMessage = true;
+        private KeybindUi keybindUi = KeybindUi.NONE;
         @Nullable
         private Predicate<ServerPlayer> activation;
 
@@ -144,6 +151,11 @@ public final class AbilitySettings {
 
         public Builder cooldownMessage(boolean value) {
             this.cooldownMessage = value;
+            return this;
+        }
+
+        public Builder keybindUi(KeybindUi keybindUi) {
+            this.keybindUi = keybindUi;
             return this;
         }
 

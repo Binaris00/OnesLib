@@ -3,6 +3,8 @@ package com.binaris.oneslib.client.keybind;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import com.binaris.oneslib.Ones;
 import com.binaris.oneslib.api.One;
 import com.binaris.oneslib.api.OneAbility;
@@ -52,5 +54,15 @@ public final class OnesKeybinds {
                 }
             }
         }
+    }
+
+    @Nullable
+    public static KeyMapping mappingFor(String abilityId) {
+        for (Map.Entry<KeyMapping, String> entry : ABILITY_KEYS.entrySet()) {
+            if (entry.getValue().equals(abilityId)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 }

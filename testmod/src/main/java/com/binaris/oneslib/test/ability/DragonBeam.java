@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.binaris.oneslib.api.AbilityContext;
 import com.binaris.oneslib.api.EndReason;
+import com.binaris.oneslib.api.KeybindUi;
 import com.binaris.oneslib.api.impl.LifetimeAbility;
 
 import net.minecraft.core.particles.ParticleTypes;
@@ -17,7 +18,8 @@ public final class DragonBeam extends LifetimeAbility {
         super("dragon_beam", 100, settings -> settings
                 .name("Dragon Beam")
                 .cooldown(200)
-                .keybind(GLFW.GLFW_KEY_B));
+                .keybind(GLFW.GLFW_KEY_B)
+                .keybindUi(KeybindUi.BOXES));
     }
 
     @Override

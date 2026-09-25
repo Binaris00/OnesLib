@@ -27,13 +27,12 @@ public final class OneState {
     }
 
     public static void write(LivingEntity entity, @Nullable OneAnimation animation) {
-        if (entity instanceof OneMorph morph) {
-            morph.oneAnimation(animation);
-        }
-
         One one = Ones.registry().byType(entity.getType()).orElse(null);
         StateChannel channel = one == null ? StateChannel.ITEM_SLOT : one.stateChannel();
         if (channel == StateChannel.SYNCED_DATA) {
+            if (entity instanceof OneMorph morph) {
+                morph.oneAnimation(animation);
+            }
             return;
         }
 
@@ -48,14 +47,12 @@ public final class OneState {
 
     @Nullable
     public static OneAnimation read(LivingEntity entity) {
-        if (entity instanceof OneMorph morph) {
-            OneAnimation animation = morph.oneAnimation();
-            if (animation != null) {
-                return animation;
-            }
+        One one = Ones.registry().byType(entity.getType()).orElse(null);
+        StateChannel channel = one == null ? StateChannel.ITEM_SLOT : one.stateChannel();
+        if (channel == StateChannel.SYNCED_DATA && entity instanceof OneMorph morph) {
+            return morph.oneAnimation();
         }
 
-        One one = Ones.registry().byType(entity.getType()).orElse(null);
         EquipmentSlot slot = one == null ? EquipmentSlot.FEET : one.stateSlot();
 
         LivingEntity owner = resolveOwner(entity);

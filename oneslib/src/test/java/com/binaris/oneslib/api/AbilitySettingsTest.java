@@ -18,6 +18,7 @@ class AbilitySettingsTest {
         assertEquals(0, settings.durationTicks());
         assertTrue(settings.cooldownMessage());
         assertFalse(settings.keybindOnly());
+        assertEquals(KeybindUi.NONE, settings.keybindUi());
         assertEquals("ability.oneslib.golpe", settings.translationKey());
         assertTrue(settings.isAllowed(null));
     }
@@ -31,6 +32,7 @@ class AbilitySettingsTest {
                 .keybind(71)
                 .keybindOnly()
                 .cooldownMessage(false)
+                .keybindUi(KeybindUi.BOXES)
                 .activation(player -> false)
                 .build();
 
@@ -40,6 +42,7 @@ class AbilitySettingsTest {
         assertEquals(71, settings.keybind());
         assertTrue(settings.keybindOnly());
         assertFalse(settings.cooldownMessage());
+        assertEquals(KeybindUi.BOXES, settings.keybindUi());
         assertFalse(settings.isAllowed(null));
     }
 }
