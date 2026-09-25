@@ -30,6 +30,7 @@ public final class OneBuilder {
     private float height = 1.8F;
     private OneData.Attributes attributes = OneData.Attributes.DEFAULT;
     private OneData.Visual visual = OneData.Visual.DEFAULT;
+    private OneData.Animations animations = OneData.Animations.DEFAULT;
     private final List<OneData.Part> parts = new ArrayList<>();
     @Nullable
     private OneData.Npc npc;
@@ -77,6 +78,13 @@ public final class OneBuilder {
         VisualBuilder builder = new VisualBuilder(this.visual);
         consumer.accept(builder);
         this.visual = builder.build();
+        return this;
+    }
+
+    public OneBuilder animations(Consumer<AnimationsBuilder> consumer) {
+        AnimationsBuilder builder = new AnimationsBuilder(this.animations);
+        consumer.accept(builder);
+        this.animations = builder.build();
         return this;
     }
 
@@ -135,7 +143,8 @@ public final class OneBuilder {
             type = this.existingType;
         }
 
-        this.built = new One(this.id, type, created, this.attributes, this.visual, List.copyOf(this.parts),
+        this.built = new One(this.id, type, created, this.attributes, this.visual, this.animations,
+                List.copyOf(this.parts),
                 this.npc, this.stateChannel, this.stateSlot, this.asset, List.copyOf(this.abilities));
         return this.built;
     }
@@ -222,12 +231,14 @@ public final class OneBuilder {
     public static final class VisualBuilder {
 
         private float modelScale;
+        private float guiScale;
         private boolean firstPersonHand;
         private boolean showNameTag;
         private Vec3 cameraOffset;
 
         VisualBuilder(OneData.Visual base) {
             this.modelScale = base.modelScale();
+            this.guiScale = base.guiScale();
             this.firstPersonHand = base.firstPersonHand();
             this.showNameTag = base.showNameTag();
             this.cameraOffset = base.cameraOffset();
@@ -235,6 +246,11 @@ public final class OneBuilder {
 
         public VisualBuilder modelScale(float value) {
             this.modelScale = value;
+            return this;
+        }
+
+        public VisualBuilder guiScale(float value) {
+            this.guiScale = value;
             return this;
         }
 
@@ -254,7 +270,49 @@ public final class OneBuilder {
         }
 
         OneData.Visual build() {
-            return new OneData.Visual(this.modelScale, this.firstPersonHand, this.showNameTag, this.cameraOffset);
+            return new OneData.Visual(this.modelScale, this.guiScale, this.firstPersonHand, this.showNameTag,
+                    this.cameraOffset);
+        }
+    }
+
+    public static final class AnimationsBuilder {
+
+        private String crouchAnimation;
+        private String attackAnimation;
+        private int attackDurationTicks;
+        private double animationSpeed;
+
+        AnimationsBuilder(OneData.Animations base) {
+            this.crouchAnimation = base.crouchAnimation();
+            this.attackAnimation = base.attackAnimation();
+            this.attackDurationTicks = base.attackDurationTicks();
+            this.animationSpeed = base.animationSpeed();
+        }
+
+        public AnimationsBuilder crouch(String name) {
+            this.crouchAnimation = name;
+            return this;
+        }
+
+        public AnimationsBuilder attack(String name, int durationTicks) {
+            this.attackAnimation = name;
+            this.attackDurationTicks = durationTicks;
+            return this;
+        }
+
+        public AnimationsBuilder attackDuration(int ticks) {
+            this.attackDurationTicks = ticks;
+            return this;
+        }
+
+        public AnimationsBuilder animationSpeed(double speed) {
+            this.animationSpeed = speed;
+            return this;
+        }
+
+        OneData.Animations build() {
+            return new OneData.Animations(this.crouchAnimation, this.attackAnimation, this.attackDurationTicks,
+                    this.animationSpeed);
         }
     }
 

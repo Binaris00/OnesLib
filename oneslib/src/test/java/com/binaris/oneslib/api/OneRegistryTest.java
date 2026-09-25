@@ -36,7 +36,8 @@ class OneRegistryTest {
         OneRegistry registry = new OneRegistry();
 
         assertThrows(IllegalStateException.class, () -> registry.register(new One("tails", () -> null, false,
-                OneData.Attributes.DEFAULT, OneData.Visual.DEFAULT, List.of(), null, StateChannel.ITEM_SLOT,
+                OneData.Attributes.DEFAULT, OneData.Visual.DEFAULT, OneData.Animations.DEFAULT, List.of(), null,
+                StateChannel.ITEM_SLOT,
                 EquipmentSlot.FEET, null,
                 List.of(new TestAbility("first", 71), new TestAbility("second", 71)))));
     }
@@ -45,10 +46,10 @@ class OneRegistryTest {
     void sameKeybindAcrossDifferentOnesIsAllowed() {
         OneRegistry registry = new OneRegistry();
         registry.register(new One("tails", () -> null, false, OneData.Attributes.DEFAULT, OneData.Visual.DEFAULT,
-                List.of(), null, StateChannel.ITEM_SLOT, EquipmentSlot.FEET, null,
+                OneData.Animations.DEFAULT, List.of(), null, StateChannel.ITEM_SLOT, EquipmentSlot.FEET, null,
                 List.of(new TestAbility("tails_fly", 71))));
         registry.register(new One("eddy", () -> null, false, OneData.Attributes.DEFAULT, OneData.Visual.DEFAULT,
-                List.of(), null, StateChannel.ITEM_SLOT, EquipmentSlot.FEET, null,
+                OneData.Animations.DEFAULT, List.of(), null, StateChannel.ITEM_SLOT, EquipmentSlot.FEET, null,
                 List.of(new TestAbility("eddy_heal", 71))));
 
         assertTrue(registry.byId("eddy").isPresent());
@@ -68,7 +69,8 @@ class OneRegistryTest {
 
     private static One one(String id, OneAbility ability) {
         return new One(id, () -> null, false, OneData.Attributes.DEFAULT, OneData.Visual.DEFAULT,
-                List.of(), null, StateChannel.ITEM_SLOT, EquipmentSlot.FEET, null, List.of(ability));
+                OneData.Animations.DEFAULT, List.of(), null, StateChannel.ITEM_SLOT, EquipmentSlot.FEET, null,
+                List.of(ability));
     }
 
     private static final class TestAbility extends OneAbility {

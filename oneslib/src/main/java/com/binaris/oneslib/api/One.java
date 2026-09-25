@@ -20,6 +20,7 @@ public final class One {
     private final boolean createdEntityType;
     private final OneData.Attributes attributes;
     private final OneData.Visual visual;
+    private final OneData.Animations animations;
     private final List<OneData.Part> parts;
     @Nullable
     private final OneData.Npc npc;
@@ -34,6 +35,7 @@ public final class One {
             boolean createdEntityType,
             OneData.Attributes attributes,
             OneData.Visual visual,
+            OneData.Animations animations,
             List<OneData.Part> parts,
             @Nullable OneData.Npc npc,
             StateChannel stateChannel,
@@ -46,6 +48,7 @@ public final class One {
         this.createdEntityType = createdEntityType;
         this.attributes = attributes;
         this.visual = visual;
+        this.animations = animations;
         this.parts = parts;
         this.npc = npc;
         this.stateChannel = stateChannel;
@@ -73,6 +76,10 @@ public final class One {
 
     public OneData.Visual visual() {
         return this.visual;
+    }
+
+    public OneData.Animations animations() {
+        return this.animations;
     }
 
     public List<OneData.Part> parts() {

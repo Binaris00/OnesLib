@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import com.binaris.oneslib.Ones;
+import com.binaris.oneslib.api.One;
 import com.binaris.oneslib.api.OneMorph;
 import com.binaris.oneslib.common.anim.OneAnimationController;
 import com.binaris.oneslib.common.state.OneAnimation;
@@ -44,6 +46,9 @@ public class OneEntity extends PathfinderMob implements GeoEntity, OneMorph {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
+    private long attackEndTime;
+    private boolean wasSwinging;
+
     public OneEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
     }
@@ -67,7 +72,10 @@ public class OneEntity extends PathfinderMob implements GeoEntity, OneMorph {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "ones_base", 5, this::baseAnimation));
+        One one = Ones.registry().byType(this.getType()).orElse(null);
+        double speed = one != null ? one.animations().animationSpeed() : 1.0D;
+        controllers.add(new AnimationController<>(this, "ones_base", 5, this::baseAnimation)
+                .setAnimationSpeed(speed));
         controllers.add(new OneAnimationController<>(this));
         this.registerCustomControllers(controllers);
     }
@@ -76,10 +84,33 @@ public class OneEntity extends PathfinderMob implements GeoEntity, OneMorph {
     }
 
     private PlayState baseAnimation(AnimationState<OneEntity> state) {
-        if (state.isMoving()) {
+        One one = Ones.registry().byType(this.getType()).orElse(null);
+        Player owner = this.oneOwner() != null ? this.level().getPlayerByUUID(this.oneOwner()) : null;
+        if (one != null) {
+            if (one.animations().hasAttack()) {
+                boolean swinging = (owner != null && owner.swinging) || this.swinging;
+                if (swinging && !this.wasSwinging) {
+                    this.attackEndTime = this.level().getGameTime() + one.animations().attackDurationTicks();
+                }
+                this.wasSwinging = swinging;
+            }
+            if (one.animations().hasCrouch() && owner != null && owner.isShiftKeyDown()) {
+                return state.setAndContinue(RawAnimation.begin().thenLoop(one.animations().crouchAnimation()));
+            }
+            if (one.animations().hasAttack() && this.level().getGameTime() < this.attackEndTime) {
+                return state.setAndContinue(RawAnimation.begin().thenLoop(one.animations().attackAnimation()));
+            }
+        }
+        boolean moving = owner != null ? ownerIsMoving(owner) : state.isMoving();
+        if (moving) {
             return state.setAndContinue(RawAnimation.begin().thenLoop("walk"));
         }
         return state.setAndContinue(RawAnimation.begin().thenLoop("idle"));
+    }
+
+    private static boolean ownerIsMoving(Player owner) {
+        double avg = (Math.abs(owner.getX() - owner.xOld) + Math.abs(owner.getZ() - owner.zOld)) / 2.0D;
+        return avg >= 0.015D;
     }
 
     @Override

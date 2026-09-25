@@ -17,6 +17,7 @@ import com.binaris.oneslib.api.event.OneMorphEvent;
 import com.binaris.oneslib.common.state.OneState;
 import com.binaris.oneslib.server.ability.AbilityEngine;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -139,7 +140,16 @@ public final class ServerOneManager {
     private void applyShape(ServerPlayer player, @Nullable LivingEntity shape) {
         ((PlayerDataProvider) player).walkers$setCurrentShape(shape);
         ((DimensionsRefresher) player).shape_refreshDimensions();
-        PlayerShape.sync(player);
+        MinecraftServer server = player.getServer();
+        if (server != null) {
+            // Broadcast to every connected player so observers see morph/evolution
+            // changes in real time (PlayerShape.sync(player) only targets self).
+            for (ServerPlayer target : server.getPlayerList().getPlayers()) {
+                PlayerShape.sync(player, target);
+            }
+        } else {
+            PlayerShape.sync(player);
+        }
     }
 
     private void bind(ServerPlayer player, One one, LivingEntity shape) {

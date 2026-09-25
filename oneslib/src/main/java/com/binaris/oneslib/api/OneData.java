@@ -35,11 +35,26 @@ public final class OneData {
         public boolean hasInfiniteFlight() {
             return this.flySeconds < 0;
         }
+     }
+
+    public record Visual(float modelScale, float guiScale, boolean firstPersonHand, boolean showNameTag,
+                         Vec3 cameraOffset) {
+
+        public static final Visual DEFAULT = new Visual(1.0F, 1.0F, true, true, Vec3.ZERO);
     }
 
-    public record Visual(float modelScale, boolean firstPersonHand, boolean showNameTag, Vec3 cameraOffset) {
+    public record Animations(String crouchAnimation, String attackAnimation, int attackDurationTicks,
+                             double animationSpeed) {
 
-        public static final Visual DEFAULT = new Visual(1.0F, true, true, Vec3.ZERO);
+        public static final Animations DEFAULT = new Animations("", "", 0, 1.0D);
+
+        public boolean hasCrouch() {
+            return !this.crouchAnimation.isBlank();
+        }
+
+        public boolean hasAttack() {
+            return !this.attackAnimation.isBlank() && this.attackDurationTicks > 0;
+        }
     }
 
     public record Part(String id, float width, float height, Vec3 offset, boolean damageParent) {
