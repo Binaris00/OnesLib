@@ -7,6 +7,7 @@ import com.binaris.oneslib.server.ability.AbilityEngine;
 import com.binaris.oneslib.server.morph.ServerOneManager;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
 public final class OnesApi {
@@ -24,6 +25,23 @@ public final class OnesApi {
 
     public static Optional<One> currentOne(Player player) {
         return Optional.ofNullable(Ones.currentOne(player));
+    }
+
+    /**
+     * Resolves the One an entity belongs to by its type. Use this in render callbacks that
+     * receive the shape rather than the player, such as the shared
+     * {@code InventoryScreen.renderEntityInInventory} entry point.
+     */
+    public static Optional<One> oneForEntity(LivingEntity entity) {
+        return Ones.registry().byType(entity.getType());
+    }
+
+    public static Optional<One> oneFor(Player player) {
+        return currentOne(player);
+    }
+
+    public static boolean isMorphed(Player player) {
+        return Ones.currentOne(player) != null;
     }
 
     public static boolean isMorphedAs(Player player, String oneId) {

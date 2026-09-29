@@ -26,11 +26,11 @@ import net.minecraft.world.phys.Vec3;
 
 public abstract class ThrowAbility extends OneAbility {
 
+    private static final String PROJECTILE = ThrowAbility.class.getName() + ".projectile";
+
     private final int lifetimeTicks;
     @Nullable
     private final ItemStack visual;
-    @Nullable
-    private Entity projectile;
 
     protected ThrowAbility(String id, int lifetimeTicks, @Nullable ItemStack visual,
                            Consumer<AbilitySettings.Builder> consumer) {
@@ -93,12 +93,13 @@ public abstract class ThrowAbility extends OneAbility {
         created.moveTo(start.x, start.y, start.z, context.player().getYRot(), context.player().getXRot());
         created.setDeltaMovement(this.initialVelocity(context));
         context.level().addFreshEntity(created);
-        this.projectile = created;
+        this.projectile(context).entity = created;
     }
 
     @Override
     public void onTick(AbilityContext context) {
-        Entity entity = this.projectile;
+        ProjectileRef ref = this.projectile(context);
+        Entity entity = ref.entity;
         if (entity == null || !entity.isAlive()) {
             context.end();
             return;
@@ -144,9 +145,20 @@ public abstract class ThrowAbility extends OneAbility {
 
     @Override
     public void onEnd(AbilityContext context, EndReason reason) {
-        if (this.projectile != null) {
-            this.projectile.discard();
-            this.projectile = null;
+        ProjectileRef ref = this.projectile(context);
+        if (ref.entity != null) {
+            ref.entity.discard();
+            ref.entity = null;
         }
+    }
+
+    private ProjectileRef projectile(AbilityContext context) {
+        return context.state(PROJECTILE, ProjectileRef::new);
+    }
+
+    private static final class ProjectileRef {
+
+        @Nullable
+        private Entity entity;
     }
 }

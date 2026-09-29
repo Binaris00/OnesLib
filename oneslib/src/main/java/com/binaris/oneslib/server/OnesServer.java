@@ -51,6 +51,14 @@ public final class OnesServer {
     }
 
     @SubscribeEvent
+    public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ServerOneManager.INSTANCE.forget(player);
+            AbilityEngine.INSTANCE.forget(player);
+        }
+    }
+
+    @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         OnesCommand.register(event.getDispatcher());
         event.getDispatcher().register(NickCommand.register());

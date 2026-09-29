@@ -159,6 +159,7 @@ public final class OneBuilder {
         private float stepHeight;
         private boolean ignoreFallDamage;
         private int flySeconds;
+        private boolean resetHealthOnMorph = true;
         private final List<OneData.EffectSpec> effects = new ArrayList<>();
 
         AttributesBuilder(OneData.Attributes base) {
@@ -170,6 +171,7 @@ public final class OneBuilder {
             this.stepHeight = base.stepHeight();
             this.ignoreFallDamage = base.ignoreFallDamage();
             this.flySeconds = base.flySeconds();
+            this.resetHealthOnMorph = base.resetHealthOnMorph();
             this.effects.addAll(base.effects());
         }
 
@@ -213,18 +215,33 @@ public final class OneBuilder {
             return this;
         }
 
+        /**
+         * Whether morphing refills the player to the new max health. Defaults to {@code true};
+         * set it to {@code false} to keep the current health across a morph (evolution).
+         */
+        public AttributesBuilder resetHealthOnMorph(boolean value) {
+            this.resetHealthOnMorph = value;
+            return this;
+        }
+
+        /**
+         * @param durationTicks ticks the effect lasts; {@code -1} keeps it for as long as the
+         *                      player stays morphed, {@code 0} makes it instant
+         */
         public AttributesBuilder effect(MobEffect effect, int durationTicks, int amplifier) {
             this.effects.add(new OneData.EffectSpec(effect, durationTicks, amplifier));
             return this;
         }
 
+        /** Grants {@code effect} for the whole morph ({@code durationTicks = -1}). */
         public AttributesBuilder effect(MobEffect effect) {
             return this.effect(effect, -1, 0);
         }
 
         OneData.Attributes build() {
             return new OneData.Attributes(this.health, this.speed, this.damage, this.knockback, this.reach,
-                    this.stepHeight, this.ignoreFallDamage, this.flySeconds, List.copyOf(this.effects));
+                    this.stepHeight, this.ignoreFallDamage, this.flySeconds, this.resetHealthOnMorph,
+                    List.copyOf(this.effects));
         }
     }
 
@@ -234,6 +251,11 @@ public final class OneBuilder {
         private float guiScale;
         private boolean firstPersonHand;
         private boolean showNameTag;
+        private boolean hideSelfNameTag;
+        private boolean hideFireOverlay;
+        private boolean hideScreenFireOverlay;
+        private float thirdPersonDistance;
+        private float fov;
         private Vec3 cameraOffset;
 
         VisualBuilder(OneData.Visual base) {
@@ -241,6 +263,11 @@ public final class OneBuilder {
             this.guiScale = base.guiScale();
             this.firstPersonHand = base.firstPersonHand();
             this.showNameTag = base.showNameTag();
+            this.hideSelfNameTag = base.hideSelfNameTag();
+            this.hideFireOverlay = base.hideFireOverlay();
+            this.hideScreenFireOverlay = base.hideScreenFireOverlay();
+            this.thirdPersonDistance = base.thirdPersonDistance();
+            this.fov = base.fov();
             this.cameraOffset = base.cameraOffset();
         }
 
@@ -264,6 +291,38 @@ public final class OneBuilder {
             return this;
         }
 
+        /** Hides the local player's own name tag while morphed as this One. */
+        public VisualBuilder hideSelfNameTag(boolean value) {
+            this.hideSelfNameTag = value;
+            return this;
+        }
+
+        /** Suppresses the fire animation drawn on this One's shape. */
+        public VisualBuilder hideFireOverlay(boolean value) {
+            this.hideFireOverlay = value;
+            return this;
+        }
+
+        /** Suppresses the full-screen fire overlay of the local player. */
+        public VisualBuilder hideScreenFireOverlay(boolean value) {
+            this.hideScreenFireOverlay = value;
+            return this;
+        }
+
+        /**
+         * Third-person camera distance for this One, in blocks. {@code 0} keeps the vanilla 4.0.
+         */
+        public VisualBuilder thirdPersonDistance(float value) {
+            this.thirdPersonDistance = value;
+            return this;
+        }
+
+        /** Field of view for this One, in degrees. {@code 0} keeps the client's configured FOV. */
+        public VisualBuilder fov(float value) {
+            this.fov = value;
+            return this;
+        }
+
         public VisualBuilder cameraOffset(double x, double y, double z) {
             this.cameraOffset = new Vec3(x, y, z);
             return this;
@@ -271,7 +330,8 @@ public final class OneBuilder {
 
         OneData.Visual build() {
             return new OneData.Visual(this.modelScale, this.guiScale, this.firstPersonHand, this.showNameTag,
-                    this.cameraOffset);
+                    this.hideSelfNameTag, this.hideFireOverlay, this.hideScreenFireOverlay,
+                    this.thirdPersonDistance, this.fov, this.cameraOffset);
         }
     }
 

@@ -1,11 +1,14 @@
 package com.binaris.oneslib.api;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -35,6 +38,7 @@ public final class AbilityContext {
     private final OneAbility ability;
     private final LivingEntity shape;
     private final List<ScheduledAction> schedules = new ArrayList<>();
+    private final Map<String, Object> state = new HashMap<>();
     private int ticks;
     private boolean endRequested;
 
@@ -200,6 +204,22 @@ public final class AbilityContext {
 
     public void end() {
         this.endRequested = true;
+    }
+
+    /**
+     * Per-activation state slot. Ability instances are shared by every player morphed as
+     * their One, so mutable state must never live on the ability itself.
+     */
+    public <T> T state(String key, Supplier<T> factory) {
+        Object existing = this.state.get(key);
+        if (existing == null) {
+            T created = factory.get();
+            this.state.put(key, created);
+            return created;
+        }
+        @SuppressWarnings("unchecked")
+        T typed = (T) existing;
+        return typed;
     }
 
     public boolean isEndRequested() {

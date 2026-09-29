@@ -34,6 +34,7 @@ class AbilitySettingsTest {
                 .cooldownMessage(false)
                 .keybindUi(KeybindUi.BOXES)
                 .activation(player -> false)
+                .translationKey("key.godzillamod.ability.golpe")
                 .build();
 
         assertEquals("Golpe Brutal", settings.name());
@@ -43,6 +44,7 @@ class AbilitySettingsTest {
         assertTrue(settings.keybindOnly());
         assertFalse(settings.cooldownMessage());
         assertEquals(KeybindUi.BOXES, settings.keybindUi());
+        assertEquals("key.godzillamod.ability.golpe", settings.translationKey());
         assertFalse(settings.isAllowed(null));
     }
 }

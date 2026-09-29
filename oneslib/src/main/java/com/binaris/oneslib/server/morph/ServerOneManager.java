@@ -127,6 +127,14 @@ public final class ServerOneManager {
         AbilityEngine.INSTANCE.activatePassives(player, one);
     }
 
+    public void forget(ServerPlayer player) {
+        ActiveOne previous = this.active.remove(player.getUUID());
+        AbilityEngine.INSTANCE.deactivateAll(player, EndReason.MORPH_LOST);
+        if (previous != null) {
+            OneState.clear(previous.shape());
+        }
+    }
+
     public void tick(ServerPlayer player) {
         LivingEntity current = PlayerShape.getCurrentShape(player);
         ActiveOne activeOne = this.active.get(player.getUUID());
@@ -186,7 +194,7 @@ public final class ServerOneManager {
     private void clear(ServerPlayer player, ActiveOne previous, boolean postEvent) {
         AbilityEngine.INSTANCE.deactivateAll(player, EndReason.MORPH_LOST);
         OneState.clear(previous.shape());
-        this.clearAttributes(player);
+        this.clearAttributes(player, previous.one().attributes());
         this.clearEffects(player, previous.one());
         this.restoreFlight(player, previous);
         if (postEvent) {
@@ -197,10 +205,8 @@ public final class ServerOneManager {
     private void applyAttributes(ServerPlayer player, One one) {
         OneData.Attributes attributes = one.attributes();
         AttributeInstance health = player.getAttribute(Attributes.MAX_HEALTH);
-        if (health != null) {
-            health.setBaseValue(BASE_HEALTH);
-        }
-        setModifier(player, Attributes.MAX_HEALTH, HEALTH_ID, "oneslib:health", attributes.health() - BASE_HEALTH);
+        double baseHealth = health == null ? BASE_HEALTH : health.getBaseValue();
+        setModifier(player, Attributes.MAX_HEALTH, HEALTH_ID, "oneslib:health", attributes.health() - baseHealth);
         setModifier(player, Attributes.MOVEMENT_SPEED, SPEED_ID, "oneslib:speed", attributes.speed() - BASE_SPEED);
         setModifier(player, Attributes.ATTACK_DAMAGE, DAMAGE_ID, "oneslib:damage", attributes.damage() - BASE_DAMAGE);
         setModifier(player, Attributes.ATTACK_KNOCKBACK, KNOCKBACK_ID, "oneslib:knockback", attributes.knockback());
@@ -208,19 +214,21 @@ public final class ServerOneManager {
                 (attributes.reach() - 1.0D) * BASE_BLOCK_REACH);
         setModifier(player, ForgeMod.ENTITY_REACH.get(), ENTITY_REACH_ID, "oneslib:entity_reach",
                 (attributes.reach() - 1.0D) * BASE_ENTITY_REACH);
+        if (attributes.resetHealthOnMorph()) {
+            player.setHealth(player.getMaxHealth());
+        }
     }
 
-    private void clearAttributes(ServerPlayer player) {
-        AttributeInstance health = player.getAttribute(Attributes.MAX_HEALTH);
-        if (health != null) {
-            health.setBaseValue(BASE_HEALTH);
-        }
+    private void clearAttributes(ServerPlayer player, OneData.Attributes attributes) {
         removeModifier(player, Attributes.MAX_HEALTH, HEALTH_ID);
         removeModifier(player, Attributes.MOVEMENT_SPEED, SPEED_ID);
         removeModifier(player, Attributes.ATTACK_DAMAGE, DAMAGE_ID);
         removeModifier(player, Attributes.ATTACK_KNOCKBACK, KNOCKBACK_ID);
         removeModifier(player, ForgeMod.BLOCK_REACH.get(), BLOCK_REACH_ID);
         removeModifier(player, ForgeMod.ENTITY_REACH.get(), ENTITY_REACH_ID);
+        if (attributes.resetHealthOnMorph()) {
+            player.setHealth(player.getMaxHealth());
+        }
     }
 
     private static void setModifier(ServerPlayer player, Attribute attribute, UUID id, String name, double amount) {
@@ -244,7 +252,8 @@ public final class ServerOneManager {
 
     private void applyEffects(ServerPlayer player, One one) {
         for (OneData.EffectSpec spec : one.attributes().effects()) {
-            player.addEffect(new MobEffectInstance(spec.effect(), -1, spec.amplifier(), false, false));
+            int duration = spec.durationTicks() < 0 ? -1 : spec.durationTicks();
+            player.addEffect(new MobEffectInstance(spec.effect(), duration, spec.amplifier(), false, false));
         }
     }
 

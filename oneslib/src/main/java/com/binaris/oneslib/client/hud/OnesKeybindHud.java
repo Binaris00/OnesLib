@@ -28,9 +28,10 @@ import org.lwjgl.glfw.GLFW;
 /**
  * Client HUD that renders the current One's keybinds. Only abilities whose
  * {@link KeybindUi} is {@link KeybindUi#BOXES} are shown: each keybind is drawn
- * inside a square with the ability name below it, four per row, in the corner of
- * the screen selected in the config. Each cell reserves enough horizontal space for
- * the longest of its box or scaled name, so long names never overlap or leave the screen.
+ * inside a square with the ability name below it, up to {@code columns} per row (never more
+ * columns than the One has abilities), in the corner of the screen selected in the config.
+ * Each cell reserves enough horizontal space for the longest of its box or scaled name, so
+ * long names never overlap or leave the screen.
  */
 @Mod.EventBusSubscriber(modid = OnesLib.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public final class OnesKeybindHud {
@@ -66,7 +67,7 @@ public final class OnesKeybindHud {
 
         int box = OnesConfig.boxSize();
         int gap = OnesConfig.gap();
-        int columns = OnesConfig.columns();
+        int columns = Math.min(OnesConfig.columns(), abilities.size());
         int nameGap = OnesConfig.nameGap();
         int margin = OnesConfig.margin();
         int cellPadding = OnesConfig.cellPadding();

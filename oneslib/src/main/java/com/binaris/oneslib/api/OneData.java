@@ -22,11 +22,12 @@ public final class OneData {
             float stepHeight,
             boolean ignoreFallDamage,
             int flySeconds,
+            boolean resetHealthOnMorph,
             List<EffectSpec> effects
     ) {
 
         public static final Attributes DEFAULT =
-                new Attributes(20.0F, 0.1F, 2.0F, 0.0F, 1.0F, 0.0F, false, 0, List.of());
+                new Attributes(20.0F, 0.1F, 2.0F, 0.0F, 1.0F, 0.0F, false, 0, true, List.of());
 
         public boolean canFly() {
             return this.flySeconds != 0;
@@ -38,9 +39,21 @@ public final class OneData {
      }
 
     public record Visual(float modelScale, float guiScale, boolean firstPersonHand, boolean showNameTag,
-                         Vec3 cameraOffset) {
+                         boolean hideSelfNameTag, boolean hideFireOverlay, boolean hideScreenFireOverlay,
+                         float thirdPersonDistance, float fov, Vec3 cameraOffset) {
 
-        public static final Visual DEFAULT = new Visual(1.0F, 1.0F, true, true, Vec3.ZERO);
+        public static final Visual DEFAULT = new Visual(1.0F, 1.0F, true, true, false, false, false,
+                0.0F, 0.0F, Vec3.ZERO);
+
+        /** {@code true} when the One overrides the vanilla third-person camera distance. */
+        public boolean hasThirdPersonDistance() {
+            return this.thirdPersonDistance > 0.0F;
+        }
+
+        /** {@code true} when the One overrides the client's configured field of view. */
+        public boolean hasFov() {
+            return this.fov > 0.0F;
+        }
     }
 
     public record Animations(String crouchAnimation, String attackAnimation, int attackDurationTicks,

@@ -37,9 +37,8 @@ public final class AbilityEngine {
             return false;
         }
 
-        Map<String, ActiveAbility> playerActive =
-                this.active.computeIfAbsent(player.getUUID(), key -> new ConcurrentHashMap<>());
-        if (playerActive.containsKey(abilityId)) {
+        Map<String, ActiveAbility> playerActive = this.active.get(player.getUUID());
+        if (playerActive != null && playerActive.containsKey(abilityId)) {
             if (ability.isToggle()) {
                 this.end(player, abilityId, EndReason.TOGGLED_OFF);
                 return true;
@@ -75,6 +74,7 @@ public final class AbilityEngine {
             return false;
         }
 
+        playerActive = this.active.computeIfAbsent(player.getUUID(), key -> new ConcurrentHashMap<>());
         playerActive.put(abilityId, new ActiveAbility(one, ability, context));
 
         if (ability.settings().sound() != null) {
@@ -116,6 +116,12 @@ public final class AbilityEngine {
         for (String abilityId : List.copyOf(playerActive.keySet())) {
             this.end(player, abilityId, reason);
         }
+    }
+
+    public void forget(ServerPlayer player) {
+        this.deactivateAll(player, EndReason.MORPH_LOST);
+        this.active.remove(player.getUUID());
+        this.cooldowns.remove(player.getUUID());
     }
 
     public void activatePassives(ServerPlayer player, One one) {

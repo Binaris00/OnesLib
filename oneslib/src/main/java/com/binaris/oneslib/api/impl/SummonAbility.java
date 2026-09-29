@@ -13,7 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public abstract class SummonAbility extends OneAbility {
 
-    private final List<LivingEntity> summoned = new ArrayList<>();
+    private static final String SUMMONED = SummonAbility.class.getName() + ".summoned";
 
     protected SummonAbility(String id, int durationTicks, Consumer<AbilitySettings.Builder> consumer) {
         super(id, builder -> {
@@ -34,28 +34,35 @@ public abstract class SummonAbility extends OneAbility {
             context.end();
             return;
         }
+        List<LivingEntity> summoned = this.summoned(context);
         for (LivingEntity summon : created) {
             if (summon == null) {
                 continue;
             }
             context.level().addFreshEntity(summon);
-            this.summoned.add(summon);
+            summoned.add(summon);
         }
     }
 
     @Override
     public void onTick(AbilityContext context) {
-        this.summoned.removeIf(summon -> !summon.isAlive());
-        for (LivingEntity summon : this.summoned) {
+        List<LivingEntity> summoned = this.summoned(context);
+        summoned.removeIf(summon -> !summon.isAlive());
+        for (LivingEntity summon : summoned) {
             this.onSummonTick(context, summon);
         }
     }
 
     @Override
     public void onEnd(AbilityContext context, EndReason reason) {
-        for (LivingEntity summon : this.summoned) {
+        List<LivingEntity> summoned = this.summoned(context);
+        for (LivingEntity summon : summoned) {
             summon.discard();
         }
-        this.summoned.clear();
+        summoned.clear();
+    }
+
+    private List<LivingEntity> summoned(AbilityContext context) {
+        return context.state(SUMMONED, ArrayList::new);
     }
 }

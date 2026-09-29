@@ -42,8 +42,9 @@ public final class OnesConfig {
                 .defineInRange("boxSize", 10, 1, 256);
         GAP = BUILDER.comment("Spacing between cells.")
                 .defineInRange("gap", 0, 0, 64);
-        COLUMNS = BUILDER.comment("Number of cells per row.")
-                .defineInRange("columns", 4, 1, 16);
+        COLUMNS = BUILDER.comment("Maximum number of cells per row. The HUD never draws a row wider than " +
+                                  "the number of abilities the current One has.")
+                .defineInRange("columns", 3, 1, 16);
         NAME_GAP = BUILDER.comment("Vertical gap between the keybind box and its name.")
                 .defineInRange("nameGap", 2, 0, 64);
         MARGIN = BUILDER.comment("Distance between the HUD and the screen edges.")

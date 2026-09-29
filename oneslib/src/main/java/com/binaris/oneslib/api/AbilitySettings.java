@@ -25,6 +25,8 @@ public final class AbilitySettings {
     private final KeybindUi keybindUi;
     @Nullable
     private final Predicate<ServerPlayer> activation;
+    @Nullable
+    private final String translationKey;
 
     AbilitySettings(Builder builder) {
         this.id = builder.id;
@@ -37,6 +39,7 @@ public final class AbilitySettings {
         this.cooldownMessage = builder.cooldownMessage;
         this.keybindUi = builder.keybindUi;
         this.activation = builder.activation;
+        this.translationKey = builder.translationKey;
     }
 
     public static Builder builder(String id) {
@@ -51,8 +54,14 @@ public final class AbilitySettings {
         return this.name;
     }
 
+    /**
+     * Translation key shown in the Controls screen. Defaults to
+     * {@code ability.oneslib.<id>}; consumers should override it with their own namespace and
+     * ship the matching entry in their lang file, otherwise two mods registering the same
+     * ability id collide on a single key.
+     */
     public String translationKey() {
-        return "ability." + OnesLib.MOD_ID + "." + this.id;
+        return this.translationKey != null ? this.translationKey : "ability." + OnesLib.MOD_ID + "." + this.id;
     }
 
     public int cooldownTicks() {
@@ -101,6 +110,8 @@ public final class AbilitySettings {
         private KeybindUi keybindUi = KeybindUi.NONE;
         @Nullable
         private Predicate<ServerPlayer> activation;
+        @Nullable
+        private String translationKey;
 
         Builder(String id) {
             this.id = id;
@@ -161,6 +172,11 @@ public final class AbilitySettings {
 
         public Builder activation(Predicate<ServerPlayer> predicate) {
             this.activation = predicate;
+            return this;
+        }
+
+        public Builder translationKey(String translationKey) {
+            this.translationKey = translationKey;
             return this;
         }
 
