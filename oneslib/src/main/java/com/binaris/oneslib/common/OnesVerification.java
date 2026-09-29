@@ -30,8 +30,10 @@ public final class OnesVerification {
             if (one.entityType() == null) {
                 problems.add("One '" + one.id() + "' has no registered entity type");
             }
-            if (one.stateChannel() == StateChannel.PACKET) {
-                problems.add("One '" + one.id() + "' uses the PACKET state channel, which is not implemented yet");
+            if (one.stateChannel() == StateChannel.SYNCED_DATA) {
+                problems.add("One '" + one.id() + "' uses the SYNCED_DATA state channel, which cannot work: "
+                        + "its shape is never added to the world, so the shape's entity data is never broadcast. "
+                        + "Use PACKET instead");
             }
             checkAssets(one, problems);
             for (OneAbility ability : one.abilities()) {

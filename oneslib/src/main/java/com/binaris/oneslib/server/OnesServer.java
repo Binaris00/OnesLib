@@ -6,10 +6,12 @@ import com.binaris.oneslib.api.One;
 import com.binaris.oneslib.server.ability.AbilityEngine;
 import com.binaris.oneslib.server.morph.ServerOneManager;
 import com.binaris.oneslib.server.nick.NickCommand;
+import com.binaris.oneslib.server.progress.EvolutionManager;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -44,15 +46,31 @@ public final class OnesServer {
     }
 
     @SubscribeEvent
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ServerOneManager.INSTANCE.onDeath(player);
+        }
+    }
+
+    @SubscribeEvent
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            EvolutionManager.INSTANCE.onRespawn(player);
             ServerOneManager.INSTANCE.respawn(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            EvolutionManager.INSTANCE.onLogin(player);
         }
     }
 
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            EvolutionManager.INSTANCE.onLogout(player);
             ServerOneManager.INSTANCE.forget(player);
             AbilityEngine.INSTANCE.forget(player);
         }

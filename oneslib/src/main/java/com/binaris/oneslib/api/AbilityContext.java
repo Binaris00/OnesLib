@@ -19,6 +19,7 @@ import com.binaris.oneslib.common.util.Particles;
 import com.binaris.oneslib.common.util.Sounds;
 import com.binaris.oneslib.common.util.Targeting;
 import com.binaris.oneslib.common.util.Titles;
+import com.binaris.oneslib.api.event.OneAbilityHitEvent;
 
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.chat.Component;
@@ -29,6 +30,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import software.bernie.geckolib.core.animation.Animation;
 
 public final class AbilityContext {
@@ -110,6 +112,41 @@ public final class AbilityContext {
         OneState.clear(this.shape);
     }
 
+    /**
+     * Plays the ability's {@link OneShotAnimation}: starts it, clears it once the whole
+     * init+hit+recover timeline has played so the One returns to idle, and schedules the hit
+     * phase so the damage does not depend on a magic tick literal. No-op when the ability did
+     * not declare a spec, which keeps plain animations working as before.
+     */
+    public void playOneShot() {
+        OneShotAnimation spec = this.ability.settings().oneShot();
+        if (spec == null) {
+            return;
+        }
+        this.animate(spec.name(), Animation.LoopType.PLAY_ONCE, spec.totalTicks());
+        if (spec.hitTick() > 0) {
+            this.schedule(spec.hitTick(), context -> this.fireOneShotHit(spec));
+        }
+    }
+
+    /**
+     * Runs the consumer at the spec's hit tick. Use it to attach damage to a declared hit phase:
+     * <pre>{@code context.schedule(context.oneShot().hitTick(), c -> c.area(5.0).damage(10.0F).hit()); }</pre>
+     */
+    public void onOneShotHit(Consumer<AbilityContext> consumer) {
+        OneShotAnimation spec = this.ability.settings().oneShot();
+        this.schedule(spec == null ? 0 : spec.hitTick(), consumer);
+    }
+
+    /** The declarative timeline of this ability, or {@code null} if it declares none. */
+    public @Nullable OneShotAnimation oneShot() {
+        return this.ability.settings().oneShot();
+    }
+
+    private void fireOneShotHit(OneShotAnimation spec) {
+        MinecraftForge.EVENT_BUS.post(new OneAbilityHitEvent(this.player, this.ability, spec));
+    }
+
     public void particles(ParticleOptions particle, int count) {
         this.particles(particle, count, 0.3D, 0.02D);
     }
@@ -147,8 +184,23 @@ public final class AbilityContext {
         this.player.removeEffect(effect);
     }
 
+    /**
+     * Kills {@code target} and announces it in the kill feed with {@code message}, without
+     * touching the {@code showDeathMessages} game rule. Some frameworks turn that rule off for
+     * the whole server, which silently swallows the death message of every ability kill; a
+     * library must not flip a global game rule to fix its own case, so the message is sent
+     * explicitly instead.
+     */
+    public void kill(LivingEntity target, Component message) {
+        if (target.isAlive()) {
+            target.kill();
+        }
+        this.player.serverLevel().players().forEach(player -> player.sendSystemMessage(message));
+    }
+
     public Area area(double radius) {
-        return new Area(this.level(), this.player, this.player.position(), radius);
+        return new Area(this.level(), this.player(), this.player.position(), radius)
+                .scheduler(this::scheduleRunnable);
     }
 
     public Optional<LivingEntity> raycast(double distance) {
@@ -200,6 +252,10 @@ public final class AbilityContext {
 
     public void scheduleEvery(int interval, Consumer<AbilityContext> action) {
         this.schedules.add(new ScheduledAction(this.ticks + interval, interval, action));
+    }
+
+    private void scheduleRunnable(int delayTicks, Runnable action) {
+        this.schedules.add(new ScheduledAction(this.ticks + delayTicks, -1, context -> action.run()));
     }
 
     public void end() {

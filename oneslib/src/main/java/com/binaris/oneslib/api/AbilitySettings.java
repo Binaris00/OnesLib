@@ -27,6 +27,8 @@ public final class AbilitySettings {
     private final Predicate<ServerPlayer> activation;
     @Nullable
     private final String translationKey;
+    @Nullable
+    private final OneShotAnimation oneShot;
 
     AbilitySettings(Builder builder) {
         this.id = builder.id;
@@ -40,6 +42,7 @@ public final class AbilitySettings {
         this.keybindUi = builder.keybindUi;
         this.activation = builder.activation;
         this.translationKey = builder.translationKey;
+        this.oneShot = builder.oneShot;
     }
 
     public static Builder builder(String id) {
@@ -62,6 +65,11 @@ public final class AbilitySettings {
      */
     public String translationKey() {
         return this.translationKey != null ? this.translationKey : "ability." + OnesLib.MOD_ID + "." + this.id;
+    }
+
+    /** The declarative one-shot timeline, or {@code null} if the ability does not declare one. */
+    public @Nullable OneShotAnimation oneShot() {
+        return this.oneShot;
     }
 
     public int cooldownTicks() {
@@ -112,6 +120,8 @@ public final class AbilitySettings {
         private Predicate<ServerPlayer> activation;
         @Nullable
         private String translationKey;
+        @Nullable
+        private OneShotAnimation oneShot;
 
         Builder(String id) {
             this.id = id;
@@ -177,6 +187,15 @@ public final class AbilitySettings {
 
         public Builder translationKey(String translationKey) {
             this.translationKey = translationKey;
+            return this;
+        }
+
+        /**
+         * Declares the one-shot timeline. The ability's duration is taken from the spec, so
+         * {@code duration(...)} should not also be set.
+         */
+        public Builder oneShot(OneShotAnimation oneShot) {
+            this.oneShot = oneShot;
             return this;
         }
 

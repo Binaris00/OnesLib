@@ -7,13 +7,18 @@ import javax.annotation.Nullable;
 import com.binaris.oneslib.Ones;
 import com.binaris.oneslib.api.One;
 import com.binaris.oneslib.api.OneMorph;
+import com.binaris.oneslib.common.network.ClientAnimationStore;
+import com.binaris.oneslib.common.network.OnesNetwork;
+import com.binaris.oneslib.common.network.SyncAnimationPacket;
 import com.binaris.oneslib.common.registry.OnesItems;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.network.PacketDistributor;
 import software.bernie.geckolib.core.animation.Animation;
 
 public final class OneState {
@@ -36,8 +41,13 @@ public final class OneState {
             return;
         }
 
-        EquipmentSlot slot = one == null ? EquipmentSlot.FEET : one.stateSlot();
         LivingEntity carrier = resolveOwner(entity);
+        if (channel == StateChannel.PACKET) {
+            writePacket(carrier, animation);
+            return;
+        }
+
+        EquipmentSlot slot = one == null ? EquipmentSlot.FEET : one.stateSlot();
         writeToken(carrier, slot, animation);
 
         if (carrier != entity && entity.getItemBySlot(slot).is(OnesItems.STATE_TOKEN.get())) {
@@ -53,9 +63,12 @@ public final class OneState {
             return morph.oneAnimation();
         }
 
-        EquipmentSlot slot = one == null ? EquipmentSlot.FEET : one.stateSlot();
-
         LivingEntity owner = resolveOwner(entity);
+        if (channel == StateChannel.PACKET) {
+            return owner instanceof Player player ? ClientAnimationStore.get(player.getUUID()) : null;
+        }
+
+        EquipmentSlot slot = one == null ? EquipmentSlot.FEET : one.stateSlot();
         if (owner != entity) {
             return readToken(owner.getItemBySlot(slot));
         }
@@ -82,8 +95,17 @@ public final class OneState {
         return entity;
     }
 
-    private static void writeToken(LivingEntity carrier, EquipmentSlot slot, @Nullable OneAnimation animation) {
-        ItemStack current = carrier.getItemBySlot(slot);
+    private static void writePacket(LivingEntity carrier, @Nullable OneAnimation animation) {
+        if (!(carrier instanceof ServerPlayer player)) {
+            return;
+        }
+        // Tracked by every client that can see the player, so remote viewers render the shape
+        // with the same animation the owner does.
+        OnesNetwork.sendTo(new SyncAnimationPacket(player.getUUID(), animation),
+                PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player));
+    }
+
+    private static void writeToken(LivingEntity carrier, EquipmentSlot slot, @Nullable OneAnimation animation) {        ItemStack current = carrier.getItemBySlot(slot);
 
         if (animation == null) {
             if (current.is(OnesItems.STATE_TOKEN.get())) {

@@ -160,6 +160,8 @@ public final class OneBuilder {
         private boolean ignoreFallDamage;
         private int flySeconds;
         private boolean resetHealthOnMorph = true;
+        private boolean persistOnDeath;
+        private boolean persistEffectsOnDeath;
         private final List<OneData.EffectSpec> effects = new ArrayList<>();
 
         AttributesBuilder(OneData.Attributes base) {
@@ -172,6 +174,8 @@ public final class OneBuilder {
             this.ignoreFallDamage = base.ignoreFallDamage();
             this.flySeconds = base.flySeconds();
             this.resetHealthOnMorph = base.resetHealthOnMorph();
+            this.persistOnDeath = base.persistOnDeath();
+            this.persistEffectsOnDeath = base.persistEffectsOnDeath();
             this.effects.addAll(base.effects());
         }
 
@@ -225,6 +229,24 @@ public final class OneBuilder {
         }
 
         /**
+         * Whether the player respawns still morphed as this One. Defaults to {@code false},
+         * so dying demorphs and ends every active ability with {@link EndReason#PLAYER_DIED}.
+         */
+        public AttributesBuilder persistOnDeath(boolean value) {
+            this.persistOnDeath = value;
+            return this;
+        }
+
+        /**
+         * Whether the One's effects survive death. Defaults to {@code false}. Only meaningful
+         * together with {@link #persistOnDeath(boolean)}.
+         */
+        public AttributesBuilder persistEffectsOnDeath(boolean value) {
+            this.persistEffectsOnDeath = value;
+            return this;
+        }
+
+        /**
          * @param durationTicks ticks the effect lasts; {@code -1} keeps it for as long as the
          *                      player stays morphed, {@code 0} makes it instant
          */
@@ -241,7 +263,7 @@ public final class OneBuilder {
         OneData.Attributes build() {
             return new OneData.Attributes(this.health, this.speed, this.damage, this.knockback, this.reach,
                     this.stepHeight, this.ignoreFallDamage, this.flySeconds, this.resetHealthOnMorph,
-                    List.copyOf(this.effects));
+                    this.persistOnDeath, this.persistEffectsOnDeath, List.copyOf(this.effects));
         }
     }
 

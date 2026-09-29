@@ -11,8 +11,7 @@
   "client": [
     "CameraMixin",
     "InventoryScreenMixin",
-    "PlayerShapeRenderMixin",
-    "ScreenEffectFireOverlayMixin"
+    "PlayerShapeRenderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

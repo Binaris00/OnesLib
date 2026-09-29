@@ -12,6 +12,7 @@ import com.binaris.oneslib.api.One;
 import com.binaris.oneslib.api.OneAbility;
 import com.binaris.oneslib.common.util.Sounds;
 import com.binaris.oneslib.server.morph.ServerOneManager;
+import com.binaris.oneslib.server.progress.EvolutionManager;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -81,6 +82,7 @@ public final class AbilityEngine {
             Sounds.play(player, ability.settings().sound(), 1.0F, 1.0F);
         }
         ability.onStart(context);
+        EvolutionManager.INSTANCE.onAbilityUsed(player, abilityId);
 
         if (ability.settings().durationTicks() == 0 && !ability.isToggle() && !ability.isPassive()) {
             this.end(player, abilityId, EndReason.FINISHED);
@@ -158,6 +160,11 @@ public final class AbilityEngine {
         if (playerCooldowns != null) {
             playerCooldowns.remove(abilityId);
         }
+    }
+
+    public void clearAll(ServerPlayer player) {
+        this.active.remove(player.getUUID());
+        this.cooldowns.remove(player.getUUID());
     }
 
     public void tick(ServerPlayer player) {

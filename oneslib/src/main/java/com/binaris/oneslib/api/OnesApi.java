@@ -73,6 +73,18 @@ public final class OnesApi {
         return AbilityEngine.INSTANCE.isOnCooldown(player, abilityId);
     }
 
+    /**
+     * Ticks an ability of the player's current One lasts. With a {@link OneShotAnimation} this
+     * is the whole init + hit + recover timeline, so an ability does not have to repeat its own
+     * duration in a magic number.
+     */
+    public static int abilityDuration(Player player, String abilityId) {
+        return currentOne(player)
+                .flatMap(one -> one.ability(abilityId))
+                .map(ability -> ability.settings().durationTicks())
+                .orElse(0);
+    }
+
     public static int cooldownLeft(ServerPlayer player, String abilityId) {
         return AbilityEngine.INSTANCE.cooldownLeft(player, abilityId);
     }

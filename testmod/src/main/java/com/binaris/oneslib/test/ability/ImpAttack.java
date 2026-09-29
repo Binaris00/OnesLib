@@ -8,7 +8,11 @@ import org.lwjgl.glfw.GLFW;
 public final class ImpAttack extends InstantAbility {
 
     public ImpAttack() {
-        super("imp_attack", settings -> settings
+        this("imp_attack");
+    }
+
+    public ImpAttack(String id) {
+        super(id, settings -> settings
                 .name("Imp Attack")
                 .cooldown(30)
                 .keybind(GLFW.GLFW_KEY_M));

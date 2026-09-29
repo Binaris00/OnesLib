@@ -1,6 +1,7 @@
 package com.binaris.oneslib.test;
 
 import com.binaris.oneslib.Ones;
+import com.binaris.oneslib.common.state.StateChannel;
 import com.binaris.oneslib.test.ability.DragonBeam;
 import com.binaris.oneslib.test.ability.DragonFireball;
 import com.binaris.oneslib.test.ability.EvilHulkGolpe;
@@ -8,6 +9,7 @@ import com.binaris.oneslib.test.ability.EvilHulkGrito;
 import com.binaris.oneslib.test.ability.ForeignPunch;
 import com.binaris.oneslib.test.ability.GiantOgreGrab;
 import com.binaris.oneslib.test.ability.ImpAttack;
+import com.binaris.oneslib.test.ability.ImpSlamAttack;
 import com.binaris.oneslib.test.ability.SirenHeadLaser;
 import com.binaris.oneslib.test.ability.TailsFly;
 import com.binaris.oneslib.test.ability.TailsPassive;
@@ -18,6 +20,8 @@ import com.binaris.oneslib.test.entity.GiantOgreOne;
 import com.binaris.oneslib.test.entity.ImpOne;
 import com.binaris.oneslib.test.entity.SirenHeadOne;
 import com.binaris.oneslib.test.entity.TailsOne;
+
+import net.minecraft.world.effect.MobEffects;
 
 public final class TestOnes {
 
@@ -42,6 +46,7 @@ public final class TestOnes {
                 .entity(EvilHulkOne::new)
                 .hitbox(0.8F, 2.2F)
                 .assets(TestMod.id("evil_hulk"))
+
                 .attributes(attributes -> attributes
                         .health(120.0F)
                         .speed(0.24F)
@@ -60,6 +65,9 @@ public final class TestOnes {
                         .speed(0.22F)
                         .damage(10.0F)
                         .ignoreFallDamage(true))
+                .visual(visual -> visual
+                        .hideFireOverlay(true)
+                        .hideScreenFireOverlay(true))
                 .ability(new SirenHeadLaser())
                 .build());
 
@@ -107,6 +115,47 @@ public final class TestOnes {
                         .health(30.0F)
                         .speed(0.2F))
                 .ability(new ForeignPunch())
+                .build());
+
+        // Same One as "imp" but transported over the network instead of the item hack, so the
+        // PACKET channel has a real shape and a real owner to exercise.
+        Ones.register("imp_packet", one -> one
+                .entity(ImpOne::new)
+                .hitbox(0.6F, 1.2F)
+                .assets(TestMod.id("imp"))
+                .stateChannel(StateChannel.PACKET)
+                .attributes(attributes -> attributes
+                        .health(30.0F)
+                        .speed(0.3F)
+                        .damage(4.0F))
+                .ability(new ImpSlamAttack())
+                .build());
+
+        // Keeps its stage across death, to exercise persistOnDeath.
+        Ones.register("immortal", one -> one
+                .entity(ImpOne::new)
+                .hitbox(0.6F, 1.2F)
+                .assets(TestMod.id("imp"))
+                .attributes(attributes -> attributes
+                        .health(200.0F)
+                        .speed(0.3F)
+                        .damage(4.0F)
+                        .persistOnDeath(true)
+                        .persistEffectsOnDeath(true)
+                )
+                .build());
+
+        // An effect with a finite duration, to prove durationTicks is honored instead of
+        // silently becoming infinite.
+        Ones.register("timed_effect", one -> one
+                .entity(ImpOne::new)
+                .hitbox(0.6F, 1.2F)
+                .assets(TestMod.id("imp"))
+                .attributes(attributes -> attributes
+                        .health(30.0F)
+                        .speed(0.3F)
+                        .damage(4.0F)
+                        .effect(MobEffects.MOVEMENT_SPEED, 100, 0))
                 .build());
     }
 }

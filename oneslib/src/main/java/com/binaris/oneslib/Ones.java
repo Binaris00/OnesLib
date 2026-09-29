@@ -11,8 +11,11 @@ import com.binaris.oneslib.api.OneRegistry;
 import com.binaris.oneslib.common.network.OnesNetwork;
 import com.binaris.oneslib.common.registry.OnesEntities;
 import com.binaris.oneslib.common.registry.OnesItems;
+import com.binaris.oneslib.server.morph.ServerOneManager;
+import com.binaris.oneslib.server.morph.ServerOneManager.ActiveOne;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -63,8 +66,20 @@ public final class Ones {
         return ResourceLocation.fromNamespaceAndPath(OnesLib.MOD_ID, path);
     }
 
+    /**
+     * The One the player is currently morphed as.
+     *
+     * <p>On the server this reads {@link ServerOneManager}, which is the library's own
+     * authoritative record. Walkers is only consulted on the client, where it is the synced
+     * representation. Deriving the answer from another mod's config on the server is what made
+     * consumers build parallel trackers: if anything desynchronized the shape, the library
+     * answered "not morphed" and every per-morph effect silently stopped working.
+     */
     @Nullable
     public static One currentOne(Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            return ServerOneManager.INSTANCE.active(serverPlayer).map(ActiveOne::one).orElse(null);
+        }
         LivingEntity shape = PlayerShape.getCurrentShape(player);
         if (shape == null) {
             return null;

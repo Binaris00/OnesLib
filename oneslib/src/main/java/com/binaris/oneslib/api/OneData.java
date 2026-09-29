@@ -23,11 +23,13 @@ public final class OneData {
             boolean ignoreFallDamage,
             int flySeconds,
             boolean resetHealthOnMorph,
+            boolean persistOnDeath,
+            boolean persistEffectsOnDeath,
             List<EffectSpec> effects
     ) {
 
         public static final Attributes DEFAULT =
-                new Attributes(20.0F, 0.1F, 2.0F, 0.0F, 1.0F, 0.0F, false, 0, true, List.of());
+                new Attributes(20.0F, 0.1F, 2.0F, 0.0F, 1.0F, 0.0F, false, 0, true, false, false, List.of());
 
         public boolean canFly() {
             return this.flySeconds != 0;

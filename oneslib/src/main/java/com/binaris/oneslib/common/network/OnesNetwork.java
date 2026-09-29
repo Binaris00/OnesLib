@@ -4,11 +4,12 @@ import com.binaris.oneslib.Ones;
 
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class OnesNetwork {
 
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
 
     private static SimpleChannel channel;
     private static int packetId;
@@ -30,10 +31,20 @@ public final class OnesNetwork {
                 .consumerMainThread(ActivateAbilityPacket::handle)
                 .add();
 
+        simpleChannel.messageBuilder(SyncAnimationPacket.class, packetId++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SyncAnimationPacket::encode)
+                .decoder(SyncAnimationPacket::new)
+                .consumerMainThread(SyncAnimationPacket::handle)
+                .add();
+
         channel = simpleChannel;
     }
 
     public static void sendToServer(Object message) {
         channel.sendToServer(message);
+    }
+
+    public static void sendTo(Object message, PacketDistributor.PacketTarget target) {
+        channel.send(target, message);
     }
 }

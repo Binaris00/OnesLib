@@ -74,7 +74,7 @@ public final class ServerOneManager {
         boolean previousMayfly;
         boolean previousFlying;
         if (previous != null) {
-            this.clear(player, previous, true);
+            this.clear(player, previous, EndReason.REPLACED, true);
             previousMayfly = previous.previousMayfly();
             previousFlying = previous.previousFlying();
         } else {
@@ -107,10 +107,14 @@ public final class ServerOneManager {
     }
 
     public void demorph(ServerPlayer player) {
+        this.clear(player, EndReason.CANCELLED, true);
+    }
+
+    private void clear(ServerPlayer player, EndReason reason, boolean postEvent) {
         ActiveOne previous = this.active.remove(player.getUUID());
         this.applyShape(player, null);
         if (previous != null) {
-            this.clear(player, previous, true);
+            this.clear(player, previous, reason, postEvent);
         }
     }
 
@@ -120,11 +124,29 @@ public final class ServerOneManager {
             return;
         }
         One one = activeOne.one();
-        AbilityEngine.INSTANCE.deactivateAll(player, EndReason.MORPH_LOST);
+        AbilityEngine.INSTANCE.deactivateAll(player, EndReason.PLAYER_DIED);
         this.applyAttributes(player, one);
         this.applyEffects(player, one);
         this.applyFlight(player, one);
         AbilityEngine.INSTANCE.activatePassives(player, one);
+    }
+
+    /**
+     * Death policy. By default the One is dropped on death: every active ability ends with
+     * {@link EndReason#PLAYER_DIED} and the morph is cleared. When the One declares
+     * {@code persistOnDeath} the morph survives and {@link #respawn(ServerPlayer)} puts
+     * everything back; {@code persistEffectsOnDeath} additionally keeps the One's effects
+     * across the death, which vanilla would otherwise strip.
+     */
+    public void onDeath(ServerPlayer player) {
+        ActiveOne activeOne = this.active.get(player.getUUID());
+        if (activeOne == null) {
+            return;
+        }
+        if (activeOne.one().attributes().persistOnDeath()) {
+            return;
+        }
+        this.clear(player, EndReason.PLAYER_DIED, true);
     }
 
     public void forget(ServerPlayer player) {
@@ -150,8 +172,16 @@ public final class ServerOneManager {
             return;
         }
 
+        if (current == null) {
+            // Walkers lost the shape. This manager is the authority, so the presentation is
+            // re-applied instead of demorphing: a desynced shape must not silently drop the
+            // player's attributes, effects, flight and fall-damage immunity.
+            this.applyShape(player, activeOne.shape());
+            return;
+        }
+
         this.active.remove(player.getUUID(), activeOne);
-        this.clear(player, activeOne, true);
+        this.clear(player, activeOne, EndReason.REPLACED, true);
 
         if (current != null) {
             Ones.registry().byType(current.getType()).ifPresent(one -> this.bind(player, one, current));
@@ -191,11 +221,13 @@ public final class ServerOneManager {
         MinecraftForge.EVENT_BUS.post(new OneMorphEvent(player, one));
     }
 
-    private void clear(ServerPlayer player, ActiveOne previous, boolean postEvent) {
-        AbilityEngine.INSTANCE.deactivateAll(player, EndReason.MORPH_LOST);
+    private void clear(ServerPlayer player, ActiveOne previous, EndReason reason, boolean postEvent) {
+        AbilityEngine.INSTANCE.deactivateAll(player, reason);
         OneState.clear(previous.shape());
         this.clearAttributes(player, previous.one().attributes());
-        this.clearEffects(player, previous.one());
+        if (!previous.one().attributes().persistEffectsOnDeath() || reason != EndReason.PLAYER_DIED) {
+            this.clearEffects(player, previous.one());
+        }
         this.restoreFlight(player, previous);
         if (postEvent) {
             MinecraftForge.EVENT_BUS.post(new OneDemorphEvent(player, previous.one()));
