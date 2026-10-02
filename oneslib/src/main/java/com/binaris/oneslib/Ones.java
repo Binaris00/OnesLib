@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import com.binaris.oneslib.api.One;
 import com.binaris.oneslib.api.OneBuilder;
 import com.binaris.oneslib.api.OneRegistry;
+import com.binaris.oneslib.client.ClientOneSkinManager;
 import com.binaris.oneslib.common.network.OnesNetwork;
 import com.binaris.oneslib.common.registry.OnesEntities;
 import com.binaris.oneslib.common.registry.OnesItems;
@@ -81,10 +82,14 @@ public final class Ones {
             return ServerOneManager.INSTANCE.active(serverPlayer).map(ActiveOne::one).orElse(null);
         }
         LivingEntity shape = PlayerShape.getCurrentShape(player);
-        if (shape == null) {
-            return null;
+        if (shape != null) {
+            One one = REGISTRY.byType(shape.getType()).orElse(null);
+            if (one != null) {
+                return one;
+            }
         }
-        return REGISTRY.byType(shape.getType()).orElse(null);
+        // Skin-change One: no Walkers shape exists, so fall back to the synced skin state.
+        return ClientOneSkinManager.one(player.getUUID());
     }
 
     @SuppressWarnings("unchecked")

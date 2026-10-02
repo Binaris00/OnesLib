@@ -22,8 +22,8 @@ public class CameraMixin {
     private static final double VANILLA_THIRD_PERSON_DISTANCE = 4.0D;
 
     @ModifyConstant(method = "setup", constant = @Constant(doubleValue = VANILLA_THIRD_PERSON_DISTANCE))
-    private double oneslib$thirdPersonDistance(BlockGetter level, Entity cameraEntity, boolean detached,
-                                              boolean mirrored, float partialTick) {
+    private double oneslib$thirdPersonDistance(double distance, BlockGetter level, Entity cameraEntity,
+                                              boolean detached, boolean mirrored, float partialTick) {
         if (!(cameraEntity instanceof Player player)) {
             return VANILLA_THIRD_PERSON_DISTANCE;
         }

@@ -37,6 +37,12 @@ public final class OnesNetwork {
                 .consumerMainThread(SyncAnimationPacket::handle)
                 .add();
 
+        simpleChannel.messageBuilder(SyncSkinOnePacket.class, packetId++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SyncSkinOnePacket::encode)
+                .decoder(SyncSkinOnePacket::new)
+                .consumerMainThread(SyncSkinOnePacket::handle)
+                .add();
+
         channel = simpleChannel;
     }
 

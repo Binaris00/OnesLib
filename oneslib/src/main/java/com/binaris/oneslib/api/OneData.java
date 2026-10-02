@@ -2,6 +2,7 @@ package com.binaris.oneslib.api;
 
 import java.util.List;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.phys.Vec3;
 
@@ -42,10 +43,12 @@ public final class OneData {
 
     public record Visual(float modelScale, float guiScale, boolean firstPersonHand, boolean showNameTag,
                          boolean hideSelfNameTag, boolean hideFireOverlay, boolean hideScreenFireOverlay,
-                         float thirdPersonDistance, float fov, Vec3 cameraOffset) {
+                         float thirdPersonDistance, float fov, Vec3 cameraOffset,
+                         boolean isSkinMorph, boolean usePlayerSkin,
+                         ResourceLocation skinTexture) {
 
         public static final Visual DEFAULT = new Visual(1.0F, 1.0F, true, true, false, false, false,
-                0.0F, 0.0F, Vec3.ZERO);
+                0.0F, 0.0F, Vec3.ZERO, false, false, null);
 
         /** {@code true} when the One overrides the vanilla third-person camera distance. */
         public boolean hasThirdPersonDistance() {
@@ -55,6 +58,22 @@ public final class OneData {
         /** {@code true} when the One overrides the client's configured field of view. */
         public boolean hasFov() {
             return this.fov > 0.0F;
+        }
+
+        /**
+         * A skin-change One renders as the normal player model with a custom skin instead of a
+         * GeckoLib shape. {@code null} skinTexture means "use the One's asset texture". The
+         * returned location always ends in {@code .png} so the texture manager can resolve it.
+         */
+        public ResourceLocation resolvedSkinTexture(ResourceLocation asset) {
+            ResourceLocation base = this.skinTexture != null
+                    ? this.skinTexture
+                    : ResourceLocation.fromNamespaceAndPath(asset.getNamespace(),
+                    "textures/entity/" + asset.getPath() + ".png");
+            if (base.getPath().endsWith(".png")) {
+                return base;
+            }
+            return base.withPath(base.getPath() + ".png");
         }
     }
 

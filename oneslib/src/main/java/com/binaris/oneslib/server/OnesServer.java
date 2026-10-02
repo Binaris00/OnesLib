@@ -64,6 +64,7 @@ public final class OnesServer {
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             EvolutionManager.INSTANCE.onLogin(player);
+            ServerOneManager.INSTANCE.syncAllSkinsTo(player);
         }
     }
 

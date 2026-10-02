@@ -14,6 +14,8 @@ import com.binaris.oneslib.api.OneData;
 import com.binaris.oneslib.api.OneMorph;
 import com.binaris.oneslib.api.event.OneDemorphEvent;
 import com.binaris.oneslib.api.event.OneMorphEvent;
+import com.binaris.oneslib.common.network.OnesNetwork;
+import com.binaris.oneslib.common.network.SyncSkinOnePacket;
 import com.binaris.oneslib.common.state.OneState;
 import com.binaris.oneslib.server.ability.AbilityEngine;
 
@@ -94,7 +96,13 @@ public final class ServerOneManager {
         }
         shape.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
 
-        this.applyShape(player, shape);
+        if (one.visual().isSkinMorph()) {
+            // Skin-change One: the player keeps the vanilla model and no Walkers shape is assigned.
+            // Only the client-side skin texture changes, synced via SyncSkinOnePacket.
+            this.syncSkin(player, one.id());
+        } else {
+            this.applyShape(player, shape);
+        }
 
         this.active.put(player.getUUID(), new ActiveOne(one, shape, previousMayfly, previousFlying));
 
@@ -112,7 +120,11 @@ public final class ServerOneManager {
 
     private void clear(ServerPlayer player, EndReason reason, boolean postEvent) {
         ActiveOne previous = this.active.remove(player.getUUID());
-        this.applyShape(player, null);
+        if (previous != null && previous.one().visual().isSkinMorph()) {
+            this.syncSkin(player, "");
+        } else {
+            this.applyShape(player, null);
+        }
         if (previous != null) {
             this.clear(player, previous, reason, postEvent);
         }
@@ -153,13 +165,54 @@ public final class ServerOneManager {
         ActiveOne previous = this.active.remove(player.getUUID());
         AbilityEngine.INSTANCE.deactivateAll(player, EndReason.MORPH_LOST);
         if (previous != null) {
+            if (previous.one().visual().isSkinMorph()) {
+                this.syncSkin(player, "");
+            }
             OneState.clear(previous.shape());
         }
     }
 
+    /**
+     * Sends the current skin-change state of a player to every connected client. Also used to push
+     * all active skin morphs to a player who just joined.
+     */
+    public void syncSkin(String oneId, ServerPlayer owner) {
+        MinecraftServer server = owner.getServer();
+        if (server == null) {
+            return;
+        }
+        SyncSkinOnePacket packet = new SyncSkinOnePacket(owner.getUUID(), oneId);
+        for (ServerPlayer target : server.getPlayerList().getPlayers()) {
+            OnesNetwork.sendTo(packet, net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> target));
+        }
+    }
+
+    private void syncSkin(ServerPlayer owner, String oneId) {
+        this.syncSkin(oneId, owner);
+    }
+
+    /** Pushes every currently-active skin morph to a freshly joined player. */
+    public void syncAllSkinsTo(ServerPlayer target) {
+        for (Map.Entry<UUID, ActiveOne> entry : this.active.entrySet()) {
+            ActiveOne activeOne = entry.getValue();
+            if (activeOne.one().visual().isSkinMorph()) {
+                OnesNetwork.sendTo(
+                        new SyncSkinOnePacket(entry.getKey(), activeOne.one().id()),
+                        net.minecraftforge.network.PacketDistributor.PLAYER.with(() -> target));
+            }
+        }
+    }
+
     public void tick(ServerPlayer player) {
-        LivingEntity current = PlayerShape.getCurrentShape(player);
         ActiveOne activeOne = this.active.get(player.getUUID());
+
+        if (activeOne != null && activeOne.one().visual().isSkinMorph()) {
+            // Skin-change One: no Walkers shape exists, so the shape-sync/re-apply logic does
+            // not apply. State is already synced on morph/demorph.
+            return;
+        }
+
+        LivingEntity current = PlayerShape.getCurrentShape(player);
 
         if (activeOne == null) {
             if (current != null) {

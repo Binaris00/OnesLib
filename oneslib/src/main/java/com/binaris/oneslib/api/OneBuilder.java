@@ -279,6 +279,9 @@ public final class OneBuilder {
         private float thirdPersonDistance;
         private float fov;
         private Vec3 cameraOffset;
+        private boolean isSkinMorph;
+        private boolean usePlayerSkin;
+        private ResourceLocation skinTexture;
 
         VisualBuilder(OneData.Visual base) {
             this.modelScale = base.modelScale();
@@ -291,6 +294,9 @@ public final class OneBuilder {
             this.thirdPersonDistance = base.thirdPersonDistance();
             this.fov = base.fov();
             this.cameraOffset = base.cameraOffset();
+            this.isSkinMorph = base.isSkinMorph();
+            this.usePlayerSkin = base.usePlayerSkin();
+            this.skinTexture = base.skinTexture();
         }
 
         public VisualBuilder modelScale(float value) {
@@ -350,10 +356,32 @@ public final class OneBuilder {
             return this;
         }
 
+        /**
+         * Marks this One as a skin-change: the player keeps the vanilla player model and only the
+         * skin texture changes. No GeckoLib shape or geo/animation assets are used.
+         */
+        public VisualBuilder skinMorph() {
+            this.isSkinMorph = true;
+            return this;
+        }
+
+        /** For skin-change Ones: render with the player's own skin instead of the One's texture. */
+        public VisualBuilder usePlayerSkin() {
+            this.usePlayerSkin = true;
+            return this;
+        }
+
+        /** Custom skin texture for a skin-change One. Defaults to the One's asset texture. */
+        public VisualBuilder skinTexture(ResourceLocation texture) {
+            this.skinTexture = texture;
+            return this;
+        }
+
         OneData.Visual build() {
             return new OneData.Visual(this.modelScale, this.guiScale, this.firstPersonHand, this.showNameTag,
                     this.hideSelfNameTag, this.hideFireOverlay, this.hideScreenFireOverlay,
-                    this.thirdPersonDistance, this.fov, this.cameraOffset);
+                    this.thirdPersonDistance, this.fov, this.cameraOffset,
+                    this.isSkinMorph, this.usePlayerSkin, this.skinTexture);
         }
     }
 

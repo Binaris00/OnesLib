@@ -29,6 +29,8 @@ public final class AbilitySettings {
     private final String translationKey;
     @Nullable
     private final OneShotAnimation oneShot;
+    @Nullable
+    private final java.util.function.Supplier<net.minecraft.world.item.Item> iconItem;
 
     AbilitySettings(Builder builder) {
         this.id = builder.id;
@@ -43,6 +45,7 @@ public final class AbilitySettings {
         this.activation = builder.activation;
         this.translationKey = builder.translationKey;
         this.oneShot = builder.oneShot;
+        this.iconItem = builder.iconItem;
     }
 
     public static Builder builder(String id) {
@@ -100,6 +103,11 @@ public final class AbilitySettings {
         return this.keybindUi;
     }
 
+    /** Item shown as the ability icon by {@link KeybindUi#ICONS}, or {@code null}. */
+    public @Nullable net.minecraft.world.item.Item iconItem() {
+        return this.iconItem == null ? null : this.iconItem.get();
+    }
+
     public boolean isAllowed(ServerPlayer player) {
         return this.activation == null || this.activation.test(player);
     }
@@ -122,6 +130,8 @@ public final class AbilitySettings {
         private String translationKey;
         @Nullable
         private OneShotAnimation oneShot;
+        @Nullable
+        private java.util.function.Supplier<net.minecraft.world.item.Item> iconItem;
 
         Builder(String id) {
             this.id = id;
@@ -177,6 +187,18 @@ public final class AbilitySettings {
 
         public Builder keybindUi(KeybindUi keybindUi) {
             this.keybindUi = keybindUi;
+            return this;
+        }
+
+        /** Item used as the ability icon when {@code keybindUi} is {@link KeybindUi#ICONS}. */
+        public Builder iconItem(net.minecraft.world.item.Item item) {
+            this.iconItem = () -> item;
+            return this;
+        }
+
+        /** Lazily resolved item used as the ability icon (resolved at HUD render time). */
+        public Builder iconItem(java.util.function.Supplier<net.minecraft.world.item.Item> item) {
+            this.iconItem = item;
             return this;
         }
 

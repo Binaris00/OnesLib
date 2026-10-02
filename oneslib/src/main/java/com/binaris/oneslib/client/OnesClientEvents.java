@@ -5,7 +5,6 @@ import com.binaris.oneslib.api.One;
 import com.binaris.oneslib.api.OnesApi;
 import com.binaris.oneslib.client.keybind.OnesKeybinds;
 import com.binaris.oneslib.common.network.ClientAnimationStore;
-import com.binaris.oneslib.mixin.EntityFireAnimationMixin;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
@@ -35,32 +34,8 @@ public final class OnesClientEvents {
     @SubscribeEvent
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         ClientAnimationStore.clear();
+        ClientOneSkinManager.clear();
     }
-
-    @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null) {
-            return;
-        }
-        long now = System.currentTimeMillis();
-        if (now - lastDiag < 2000L) {
-            return;
-        }
-        lastDiag = now;
-        One one = OnesApi.oneFor(minecraft.player).orElse(null);
-        OnesLib.LOGGER.warn("[FIRE-DIAG] player={} one={} localHide={} | mixin calls={} players={} morphed={} hidden={}",
-                minecraft.player.getName().getString(),
-                one == null ? "null" : one.id(),
-                one != null && one.visual().hideFireOverlay(),
-                EntityFireAnimationMixin.calls, EntityFireAnimationMixin.players,
-                EntityFireAnimationMixin.morphed, EntityFireAnimationMixin.hidden);
-    }
-
-    private static long lastDiag = 0L;
 
     /**
      * Suppresses the full-screen fire overlay when {@code visual.hideScreenFireOverlay} is set
